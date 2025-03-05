@@ -20,9 +20,7 @@ class CodeBuildStack(Stack):
             'github-oauth-token'
         )
         
-        # 创建一个IAM角色,允许codebulid访问ECR
-        # TODO:完全看不懂啊!!!
-        # 被毒打之后懂了
+        # 创建一个IAM角色,允许codebuild访问ECR
         self.codebuild_role = iam.Role(
             self, 'EvalSandboxCodeBuildRole',
             assumed_by=iam.ServicePrincipal('codebuild.amazonaws.com'),
@@ -41,8 +39,8 @@ class CodeBuildStack(Stack):
             resources=[github_token.secret_arn]
         ))
 
-        # 添加 ECR 访问权限
-        repository.grant_pull(self.codebuild_role)
+        # 修改这里：添加 ECR 完整访问权限
+        repository.grant_pull_push(self.codebuild_role)
 
         # 创建CodeBuild项目
         self.codebuild_project = codebuild.Project(
