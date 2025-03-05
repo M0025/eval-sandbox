@@ -1,0 +1,19 @@
+{
+  "version": "39.0.0",
+  "files": {
+    "34212bc7fd1630164d34e4489ca18cb7da9eda2d5ef3457918adaef9277664d5": {
+      "source": {
+        "path": "EvalSandboxCodeBuild.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-current_region": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "34212bc7fd1630164d34e4489ca18cb7da9eda2d5ef3457918adaef9277664d5.json",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}
