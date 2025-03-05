@@ -6,4 +6,4 @@ WORKDIR /app
 COPY . .
 
 # 设置默认命令
-CMD ["python", "app.py"]
+CMD ["python", "main.py"]

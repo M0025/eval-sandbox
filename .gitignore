@@ -1,0 +1,67 @@
+# macOS 文件
+.DS_Store
+
+# Python 编译缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtualenv & Poetry
+.venv/
+env/
+venv/
+poetry.lock
+
+# Pipenv
+Pipfile
+Pipfile.lock
+
+# AWS CDK
+cdk.out/
+.cdk.staging/
+cdk.context.json
+
+# 忽略 CDK 生成的 CloudFormation 模板
+*.template.json
+cdk.out/
+
+# AWS 相关
+.aws/
+.credentials/
+.config/
+
+# ML 项目数据文件
+data/
+datasets/
+*.h5
+*.hdf5
+*.pkl
+*.joblib
+*.pt
+*.onnx
+*.pb
+*.tflite
+*.tar.gz
+*.zip
+
+# DVC 相关
+.dvc/
+.dvc/cache/
+.dvc/tmp/
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# VSCode 相关
+.vscode/
+
+# 其他临时文件
+tmp/
+logs/
+cdk/cdk.out/EvalSandboxCodeBuild.assets.json
+cdk/cdk.out/EvalSandboxCodeBuild.template.json

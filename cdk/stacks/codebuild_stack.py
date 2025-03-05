@@ -1,5 +1,6 @@
 from aws_cdk import (
     Stack,
+    SecretValue,
     aws_codebuild as codebuild,
     aws_ecr as ecr,
     aws_codecommit as codecommit,
@@ -13,7 +14,7 @@ class CodeBuildStack(Stack):
     def __init__(self, scope: Construct, id: str, repository,  **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-         # 获取 GitHub token
+        # 获取 GitHub token
         github_token = secretsmanager.Secret.from_secret_name_v2(
             self, 'GitHubToken',
             'github-oauth-token'
@@ -21,6 +22,7 @@ class CodeBuildStack(Stack):
         
         # 创建一个IAM角色,允许codebulid访问ECR
         # TODO:完全看不懂啊!!!
+        # 被毒打之后懂了
         self.codebuild_role = iam.Role(
             self, 'EvalSandboxCodeBuildRole',
             assumed_by=iam.ServicePrincipal('codebuild.amazonaws.com'),
@@ -28,14 +30,21 @@ class CodeBuildStack(Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name('AWSCodeBuildDeveloperAccess'),
             ]
         )
+
+        # 添加访问 Secrets Manager 的权限
+        self.codebuild_role.add_to_policy(iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
+            actions=[
+                'secretsmanager:GetSecretValue',
+                'secretsmanager:DescribeSecret'
+            ],
+            resources=[github_token.secret_arn]
+        ))
+
+        # 添加 ECR 访问权限
         repository.grant_pull(self.codebuild_role)
 
-        # 创建一个CodeBuild项目
-        # Codebuild项目需要一个环境变量,指向ECR仓库
-        # 需要一个环境变量,指向代码仓库
-        # 需要一个环境变量,指向代码仓库的webhook
-        # 需要一个环境变量,指向代码仓库的webhook过滤器
-
+        # 创建CodeBuild项目
         self.codebuild_project = codebuild.Project(
             self, 'EvalSandboxCodeBuild',
             project_name='eval-sandbox-codebuild',
@@ -48,7 +57,6 @@ class CodeBuildStack(Stack):
                             codebuild.EventAction.PUSH
                         ).and_branch_is('main')
                     ],
-                    oauth_token=github_token.secret_value
                 ),
             # 指定构建环境
             environment=codebuild.BuildEnvironment(
@@ -63,8 +71,13 @@ class CodeBuildStack(Stack):
                     ),
                     "REPOSITORY_URI": codebuild.BuildEnvironmentVariable(
                         value=repository.repository_uri
+                    ),
+                    'GITHUB_TOKEN': codebuild.BuildEnvironmentVariable(
+                        value=github_token.secret_arn, 
+                        type=codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER
                     )
                 }
             ),
-            build_spec=codebuild.BuildSpec.from_source_filename('docker/buildspec.yml')
+            build_spec=codebuild.BuildSpec.from_source_filename('eval/docker/buildspec.yml'),
+            role=self.codebuild_role
         )

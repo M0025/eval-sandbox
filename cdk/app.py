@@ -1,8 +1,8 @@
 # 这个文件是CDK的入口文件
 
 import aws_cdk as cdk
-from ecr_stack import ECRStack
-from codebuild_stack import CodeBuildStack
+from stacks.ecr_stack import ECRStack
+from stacks.codebuild_stack import CodeBuildStack
 
 app = cdk.App()
 

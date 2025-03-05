@@ -6,7 +6,10 @@ authors = [
     "ShiYue <yue.shi@amptalk.co.jp>"
 ]
 readme = "README.md"
-packages = [{include = "."}]
+packages = [
+    {include = "stacks"},
+    {include = "app.py"}
+    ]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
