@@ -36,7 +36,7 @@ class EcsStack(Stack):
             "EvalContainer",
             image=ecs.ContainerImage.from_ecr_repository(
                 repository=ecr_repository,
-                tag="ddec412"
+                tag="6466cce"
             ),
             logging=ecs.LogDrivers.aws_logs(
                 stream_prefix="eval-container"
