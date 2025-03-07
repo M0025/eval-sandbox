@@ -1,13 +1,11 @@
 version: 0.
-
 env:
   variables:
-    AWS_REGION: "ap-northeast-1"
-    CLUSTER_NAME: "eval-cluster"
-    TASK_DEFINITION: "arn:aws:ecs:ap-northeast-1:783764605802:task-definition/EvalSandboxECSEvalTaskDef7E596392:3"
-    SUBNET_ID: "subnet-subne-0deb83fb71d93198d"  # 你的 Subnet ID
-    SECURITY_GROUP_ID: "sg-063742fafd99e2fe0"  # 你的 Security Group ID
-
+    AWS_REGION: ap-northeast-1
+    CLUSTER_NAME: eval-cluster
+    TASK_DEFINITION: arn:aws:ecs:ap-northeast-1:783764605802:task-definition/EvalSandboxECSEvalTaskDef7E596392:3
+    SUBNET_ID: subnet-subne-0deb83fb71d93198d # 你的 Subnet ID
+    SECURITY_GROUP_ID: sg-063742fafd99e2fe0 # 你的 Security Group ID
 phases:
   pre_build:
     commands:
@@ -15,7 +13,6 @@ phases:
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-      
   build:
     commands:
       - echo Build started on `date`
@@ -23,10 +20,9 @@ phases:
       - echo "Listing all files:"
       - ls -al
       - echo "Checking eval/docker directory:"
-      - ls -al eval/docker 
+      - ls -al eval/docker
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG -f eval/docker/dockerfile .
       - docker tag $REPOSITORY_URI:$IMAGE_TAG $REPOSITORY_URI:latest
-      
   post_build:
     commands:
       - echo Pushing the Docker image to ECR...
@@ -34,15 +30,10 @@ phases:
       - echo Writing image definitions file...
       - printf '[{"name":"eval-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - echo Running ECS task...
-      - aws ecs run-task \
-        --cluster $CLUSTER_NAME \
-        --task-definition $TASK_DEFINITION \
-        --launch-type FARGATE \
-        --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_ID],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}"
+      - aws ecs run-task \ --cluster $CLUSTER_NAME \ --task-definition $TASK_DEFINITION \ --launch-type FARGATE \ --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_ID],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}"
       - echo ECS Task Triggered Successfully!
       - echo Waiting for task to complete...
-      - sleep 60  # 等待任务完成，根据实际情况调整等待时间
-
+      - sleep 60 # 等待任务完成，根据实际情况调整等待时间
 artifacts:
   files:
     - imagedefinitions.json
