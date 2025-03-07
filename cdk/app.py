@@ -7,7 +7,7 @@ from stacks.ecs_stack import EcsStack
 from stacks.s3_stack import S3Stack
 from stacks.vpc_stack import VpcStack
 # from stacks.lambda_stack import LambdaStack
-from stacks.ssm_stack import SystemsManagerStack
+
 from stacks.cloudwatch_stack import CloudWatchStack
 
 app = cdk.App()
@@ -44,18 +44,6 @@ cdk.Tags.of(ecs_stack).add("Application", "EvalSandbox")
 # )
 # cdk.Tags.of(lambda_stack).add("Application", "EvalSandbox")
 
-# 创建 Systems Manager stack
-ssm_stack = SystemsManagerStack(
-    app, "EvalSandboxSSM",
-    cluster_name=ecs_stack.ecs_cluster.cluster_name,
-    task_definition_arn=ecs_stack.task_definition.task_definition_arn,
-    # lambda_function_arn=lambda_stack.trigger_function.function_arn,
-    ecr_repository_name=ecr_stack.ecr_repo.repository_name,
-    s3_bucket_name=s3_stack.result_bucket.bucket_name,
-    vpc_id=vpc_stack.vpc.vpc_id
-)
-cdk.Tags.of(ssm_stack).add("Application", "EvalSandbox")
-
 # 创建 CloudWatch stack
 cloudwatch_stack = CloudWatchStack(
     app, "EvalSandboxCloudWatch",
@@ -69,8 +57,7 @@ ecs_stack.add_dependency(ecr_stack)
 ecs_stack.add_dependency(s3_stack)
 ecs_stack.add_dependency(codebuild_stack)
 # lambda_stack.add_dependency(ecs_stack)
-ssm_stack.add_dependency(ecs_stack)
-# ssm_stack.add_dependency(lambda_stack)
+# ssm_stack.add_dependency(ecs_stack)
 cloudwatch_stack.add_dependency(ecs_stack)
 
 app.synth()
