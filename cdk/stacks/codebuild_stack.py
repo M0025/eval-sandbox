@@ -20,7 +20,7 @@ class CodeBuildStack(Stack):
             'github-oauth-token'
         )
         
-        # 创建一个IAM角色,允许codebuild访问ECR
+        # 创建一个IAM角色,允许codebuild访问ECR和ECS
         self.codebuild_role = iam.Role(
             self, 'EvalSandboxCodeBuildRole',
             assumed_by=iam.ServicePrincipal('codebuild.amazonaws.com'),
@@ -37,6 +37,20 @@ class CodeBuildStack(Stack):
                 'secretsmanager:DescribeSecret'
             ],
             resources=[github_token.secret_arn]
+        ))
+
+        # 添加 ECS 访问权限
+        self.codebuild_role.add_to_policy(iam.PolicyStatement(
+            effect=iam.Effect.ALLOW,
+            actions=[
+                'ecs:RunTask',
+                'ecs:StopTask',
+                'ecs:DescribeTasks',
+                'ecs:ListTasks',
+                'ecs:DescribeTaskDefinition',
+                'iam:PassRole'
+            ],
+            resources=['*']
         ))
 
         # 修改这里：添加 ECR 完整访问权限
