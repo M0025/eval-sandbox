@@ -39,7 +39,7 @@ class CodeBuildStack(Stack):
             resources=[github_token.secret_arn]
         ))
 
-        # 添加 ECS 访问权限
+        # 添加 ECS 和 EC2 访问权限
         self.codebuild_role.add_to_policy(iam.PolicyStatement(
             effect=iam.Effect.ALLOW,
             actions=[
@@ -49,6 +49,8 @@ class CodeBuildStack(Stack):
                 'ecs:ListTasks',
                 'ecs:DescribeTaskDefinition',
                 'ecs:ListTaskDefinitions',
+                'ecs:DescribeClusters',
+                'ec2:DescribeSubnets',
                 'iam:PassRole'
             ],
             resources=['*']
