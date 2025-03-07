@@ -1,4 +1,12 @@
-version: 0.2
+version: 0.
+
+env:
+  variables:
+    AWS_REGION: "ap-northeast-1"
+    CLUSTER_NAME: "eval-cluster"
+    TASK_DEFINITION: "arn:aws:ecs:ap-northeast-1:783764605802:task-definition/EvalSandboxECSEvalTaskDef7E596392:3"
+    SUBNET_ID: "subnet-subne-0deb83fb71d93198d"  # 你的 Subnet ID
+    SECURITY_GROUP_ID: "sg-063742fafd99e2fe0"  # 你的 Security Group ID
 
 phases:
   pre_build:
@@ -26,10 +34,12 @@ phases:
       - echo Writing image definitions file...
       - printf '[{"name":"eval-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - echo Running ECS task...
-      - TASK_DEFINITION="arn:aws:ecs:ap-northeast-1:783764605802:task-definition/EvalSandboxECSEvalTaskDef7E596392:3"
-      - echo Task Definition ARN
-      - echo $TASK_DEFINITION
-      - aws ecs run-task --cluster eval-cluster --task-definition $TASK_DEFINITION --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$(aws ecs describe-clusters --clusters eval-cluster --query 'clusters[0].vpcId' --output text) --query 'Subnets[0].SubnetId' --output text)],assignPublicIp=ENABLED}"
+      - aws ecs run-task \
+        --cluster $CLUSTER_NAME \
+        --task-definition $TASK_DEFINITION \
+        --launch-type FARGATE \
+        --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_ID],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}"
+      - echo ECS Task Triggered Successfully!
       - echo Waiting for task to complete...
       - sleep 60  # 等待任务完成，根据实际情况调整等待时间
 
