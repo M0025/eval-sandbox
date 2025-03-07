@@ -30,11 +30,7 @@ phases:
       - echo Writing image definitions file...
       - printf '[{"name":"eval-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - echo Running ECS task...
-      - echo $CLUSTER_NAME  
-      - echo $TASK_DEFINITION
-      - echo $SUBNET_ID
-      - echo $SECURITY_GROUP_ID
-      - aws ecs run-task \ --cluster $CLUSTER_NAME \ --task-definition $TASK_DEFINITION \ --launch-type FARGATE \ --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_ID],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}"
+      - aws ecs run-task --cluster "$CLUSTER_NAME" --task-definition "$TASK_DEFINITION" --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_ID],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}"
       - echo ECS Task Triggered Successfully!
       - echo Waiting for task to complete...
       - sleep 60 # 等待任务完成，根据实际情况调整等待时间
