@@ -48,6 +48,7 @@ class CodeBuildStack(Stack):
                 'ecs:DescribeTasks',
                 'ecs:ListTasks',
                 'ecs:DescribeTaskDefinition',
+                'ecs:ListTaskDefinitions',
                 'iam:PassRole'
             ],
             resources=['*']
