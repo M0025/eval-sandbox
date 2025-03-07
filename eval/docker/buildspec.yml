@@ -4,7 +4,7 @@ env:
     AWS_REGION: ap-northeast-1
     CLUSTER_NAME: eval-cluster
     TASK_DEFINITION: arn:aws:ecs:ap-northeast-1:783764605802:task-definition/EvalSandboxECSEvalTaskDef7E596392:3
-    SUBNET_ID: subnet-subne-0deb83fb71d93198d # 你的 Subnet ID
+    SUBNET_ID: subnet-0deb83fb71d93198d # 你的 Subnet ID
     SECURITY_GROUP_ID: sg-063742fafd99e2fe0 # 你的 Security Group ID
 phases:
   pre_build:
