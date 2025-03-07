@@ -1,4 +1,4 @@
-version: 0.
+version: 0.2
 env:
   variables:
     AWS_REGION: ap-northeast-1
