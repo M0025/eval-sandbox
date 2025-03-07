@@ -26,11 +26,7 @@ phases:
       - echo Writing image definitions file...
       - printf '[{"name":"eval-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - echo Running ECS task...
-      - aws ecs list-task-definitions --family-prefix EvalSandboxECS --sort DESC --max-items 1 --query 'taskDefinitionArns[0]' --output text
-      - echo "Command Output: $?"
-      - export TASK_DEFINITION=$(aws ecs list-task-definitions --family-prefix EvalSandboxECS --sort DESC --max-items 1 --query 'taskDefinitionArns[0]' --output text)
-      - echo "Task Definition"
-      - echo $TASK_DEFINITION
+      - TASK_DEFINITION=$(aws ecs list-task-definitions --sort DESC --max-items 1 --query 'taskDefinitionArns[0]' --output text)
       - aws ecs run-task --cluster eval-cluster --task-definition $TASK_DEFINITION --launch-type FARGATE --network-configuration "awsvpcConfiguration={subnets=[$(aws ec2 describe-subnets --filters Name=vpc-id,Values=$(aws ecs describe-clusters --clusters eval-cluster --query 'clusters[0].vpcId' --output text) --query 'Subnets[0].SubnetId' --output text)],assignPublicIp=ENABLED}"
       - echo Waiting for task to complete...
       - sleep 60  # 等待任务完成，根据实际情况调整等待时间
