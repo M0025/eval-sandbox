@@ -1,0 +1,24 @@
+{
+  "containerDefinitions": [
+    {
+      "essential": true,
+      "name": "eval-container",
+      "image": "${REPOSITORY_URI}:${IMAGE_TAG}",
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/aws/ecs/eval-cluster",
+          "awslogs-region": "${AWS_DEFAULT_REGION}",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ],
+  "networkMode": "awsvpc",
+  "family": "eval-python-task",
+  "cpu": "256",
+  "memory": "512",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ]
+}

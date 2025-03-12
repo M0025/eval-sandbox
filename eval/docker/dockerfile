@@ -5,7 +5,4 @@ WORKDIR /app
 # 复制应用代码
 COPY . .
 
-# 设置默认命令
-CMD ["python", "main.py"]
-
-#所以这个玩意应该大写小写啊...
+ENTRYPOINT ["python", "eval.py"]

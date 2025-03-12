@@ -8,6 +8,7 @@ from aws_cdk import (
     CfnOutput,
 )
 from constructs import Construct
+import os
 
 class EcsStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, 
@@ -36,7 +37,7 @@ class EcsStack(Stack):
             "EvalContainer",
             image=ecs.ContainerImage.from_ecr_repository(
                 repository=ecr_repository,
-                tag="6466cce"
+                tag=os.environ.get("IMAGE_TAG", "latest")
             ),
             logging=ecs.LogDrivers.aws_logs(
                 stream_prefix="eval-container"
@@ -48,10 +49,19 @@ class EcsStack(Stack):
             self, "EvalService",
             cluster=cluster,
             task_definition=task_definition,
-            desired_count=1,
+            desired_count=0,
             vpc_subnets=ec2.SubnetSelection(
-                subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS
+                subnet_type=ec2.SubnetType.PUBLIC
             ),
+            security_groups=[
+                ec2.SecurityGroup(
+                    self, "EcsSecurityGroup",
+                    vpc=vpc,
+                    description="Security group for ECS service in public subnet",
+                    allow_all_outbound=True
+                )
+            ],
+            assign_public_ip=True,
         )
 
         # 添加 ECR 拉取权限

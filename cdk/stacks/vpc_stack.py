@@ -13,16 +13,11 @@ class VpcStack(Stack):
         self.vpc = ec2.Vpc(
             self, "EvalVpc",
             max_azs=2,
-            nat_gateways=1,
+            nat_gateways=0,
             subnet_configuration=[
                 ec2.SubnetConfiguration(
                     name="Public",
                     subnet_type=ec2.SubnetType.PUBLIC,
-                    cidr_mask=24
-                ),
-                ec2.SubnetConfiguration(
-                    name="Private",
-                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS,
                     cidr_mask=24
                 )
             ]
@@ -38,8 +33,3 @@ class VpcStack(Stack):
             value=",".join([subnet.subnet_id for subnet in self.vpc.public_subnets]),
             description="公共子网 IDs"
         )
-        
-        CfnOutput(self, "PrivateSubnets", 
-            value=",".join([subnet.subnet_id for subnet in self.vpc.private_subnets]),
-            description="私有子网 IDs"
-        ) 

@@ -1,1 +1,0 @@
-print("我要构建一个docker镜像! 用CDK!! ")
