@@ -29,8 +29,8 @@ phases:
       - echo Writing image definitions file...
       - printf '[{"name":"eval-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - echo Running ECS task...
-      - envsubst < ./eval/defintion-dev.json > /tmp/defintion-dev.json
-      - export TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json file:///tmp/defintion-dev.json | jq -r '.taskDefinition.taskDefinitionArn')
+      - envsubst < ./eval/definition-dev.json > /tmp/definition-dev.json
+      - export TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json file:///tmp/definition-dev.json | jq -r '.taskDefinition.taskDefinitionArn')
       - echo "Task definition ARN = $TASK_DEFINITION_ARN"
       - |
         if [ -n "$HYDRA_PARAMS" ]; then
