@@ -3,7 +3,6 @@ env:
   variables:
     AWS_REGION: ap-northeast-1
     CLUSTER_NAME: eval-cluster
-    # 子网和安全组将在pre_build阶段动态获取
 phases:
   pre_build:
     commands:
@@ -11,16 +10,13 @@ phases:
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-      # 动态获取VPC ID
+      - echo "Dynamically finding VPC, subnet and security group"
       - VPC_ID=$(aws ec2 describe-vpcs --filter "Name=tag:Name,Values=*EvalVpc*" --query "Vpcs[0].VpcId" --output text)
       - echo "Found VPC: $VPC_ID"
-      # 动态获取第一个公共子网ID
       - SUBNET_ID=$(aws ec2 describe-subnets --filter "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=*Public*" --query "Subnets[0].SubnetId" --output text)
       - echo "Using subnet: $SUBNET_ID"
-      # 动态获取ECS安全组ID
       - SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filter "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=*EcsSecurityGroup*" --query "SecurityGroups[0].GroupId" --output text)
       - echo "Using security group: $SECURITY_GROUP_ID"
-      # 如果未找到ECS安全组，则使用默认安全组
       - |
         if [ -z "$SECURITY_GROUP_ID" ]; then
           SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filter "Name=vpc-id,Values=$VPC_ID" "Name=group-name,Values=default" --query "SecurityGroups[0].GroupId" --output text)
