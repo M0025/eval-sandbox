@@ -46,7 +46,7 @@ phases:
       - aws iam get-role --role-name ecsTaskExecutionRole || echo ecsTaskExecutionRole not found
       - echo Registering task definition...
       - TASK_DEF_OUTPUT=$(aws ecs register-task-definition --cli-input-json file:///tmp/definition-dev.json)
-      - echo Complete task definition registration output:
+      - echo Complete task definition registration output
       - echo "$TASK_DEF_OUTPUT"
       - export TASK_DEFINITION_ARN=$(echo "$TASK_DEF_OUTPUT" | jq -r '.taskDefinition.taskDefinitionArn')
       - echo Task definition ARN = $TASK_DEFINITION_ARN
