@@ -10,7 +10,7 @@ phases:
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-      - echo "Dynamically finding VPC, subnet and security group"
+      - echo Dynamically finding VPC, subnet and security group
       - VPC_ID=$(aws ec2 describe-vpcs --filter "Name=tag:Name,Values=*EvalVpc*" --query "Vpcs[0].VpcId" --output text)
       - echo $VPC_ID
       - SUBNET_ID=$(aws ec2 describe-subnets --filter "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=*Public*" --query "Subnets[0].SubnetId" --output text)
@@ -20,15 +20,15 @@ phases:
       - |
         if [ -z "$SECURITY_GROUP_ID" ]; then
           SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filter "Name=vpc-id,Values=$VPC_ID" "Name=group-name,Values=default" --query "SecurityGroups[0].GroupId" --output text)
-          echo "ECS security group not found, using default security group: $SECURITY_GROUP_ID"
+          echo ECS security group not found, using default security group $SECURITY_GROUP_ID
         fi
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - echo "Listing all files:"
+      - echo Listing all files
       - ls -al
-      - echo "Checking eval/docker directory:"
+      - echo Checking eval/docker directory
       - ls -al eval/docker
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG -f eval/docker/dockerfile .
       - docker tag $REPOSITORY_URI:$IMAGE_TAG $REPOSITORY_URI:latest
@@ -40,10 +40,10 @@ phases:
       - printf '[{"name":"eval-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - echo Running ECS task...
       - envsubst < ./eval/definition-dev.json > /tmp/definition-dev.json
-      - echo "DEBUG: Showing contents of definition-dev.json after envsubst:"
+      - echo Showing contents of definition-dev.json after envsubst
       - cat /tmp/definition-dev.json
       - export TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json file:///tmp/definition-dev.json | jq -r '.taskDefinition.taskDefinitionArn')
-      - echo "Task definition ARN = $TASK_DEFINITION_ARN"
+      - echo Task definition ARN = $TASK_DEFINITION_ARN
       - |
         if [ -n "$HYDRA_PARAMS" ]; then
           export TASK_DEFINITION_ARN=$TASK_DEFINITION_ARN
@@ -52,11 +52,11 @@ phases:
           export TASK_DEFINITION_ARN=$TASK_DEFINITION_ARN
           envsubst < ./eval/run-dev.json > /tmp/run-dev.json
         fi
-      - echo "DEBUG: Showing contents of run-dev.json after envsubst:"
+      - echo Showing contents of run-dev.json after envsubst
       - cat /tmp/run-dev.json
       - echo Running ECS task...
-      - aws ecs describe-clusters --clusters ${CLUSTER_NAME} || echo "Cluster ${CLUSTER_NAME} not found"
-      - aws ecs list-task-definitions --family-prefix eval-python-task || echo "No task definitions found"
+      - aws ecs describe-clusters --clusters ${CLUSTER_NAME} || echo Cluster ${CLUSTER_NAME} not found
+      - aws ecs list-task-definitions --family-prefix eval-python-task || echo No task definitions found
       - aws ecs run-task --cli-input-json file:///tmp/run-dev.json
       # - echo Running ECS task...
       # - aws ecs run-task --cli-input-json file:///tmp/run-ecs-training-task-$DEPLOY_ENV.json
