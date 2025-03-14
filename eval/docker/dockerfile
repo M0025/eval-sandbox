@@ -5,4 +5,4 @@ WORKDIR /app
 # 复制应用代码
 COPY . .
 
-ENTRYPOINT ["python", "eval.py"]
+ENTRYPOINT ["python", "eval/eval.py"]
