@@ -5,7 +5,9 @@ from aws_cdk import (
     aws_iam as iam,
     aws_s3 as s3,
     aws_ecr as ecr,
+    aws_logs as logs,
     CfnOutput,
+    RemovalPolicy,
 )
 from constructs import Construct
 import os
@@ -15,6 +17,9 @@ class EcsStack(Stack):
                  ecr_repository: ecr.Repository,
                  result_bucket: s3.IBucket,
                  vpc: ec2.IVpc,
+                 task_role: iam.IRole = None,
+                 execution_role: iam.IRole = None,
+                 log_group_name: str = "/aws/ecs/eval-cluster",
                  **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
@@ -24,12 +29,28 @@ class EcsStack(Stack):
             vpc=vpc,
             cluster_name="eval-cluster"
         )
-
-        # 创建任务定义
+        
+        # 引用已存在的日志组，而不是创建新的
+        log_group = logs.LogGroup.from_log_group_name(
+            self, "ImportedLogGroup", 
+            log_group_name
+        )
+        
+        # 创建任务定义，使用传入的角色（如果有）
+        task_definition_props = {
+            "cpu": 256,  # 0.25 vCPU
+            "memory_limit_mib": 512,  # 0.5 GB
+        }
+        
+        if task_role:
+            task_definition_props["task_role"] = task_role
+        
+        if execution_role:
+            task_definition_props["execution_role"] = execution_role
+            
         task_definition = ecs.FargateTaskDefinition(
             self, "EvalTaskDef",
-            cpu=256,  # 0.25 vCPU
-            memory_limit_mib=512,  # 0.5 GB
+            **task_definition_props
         )
 
         # 添加容器到任务定义
@@ -40,7 +61,8 @@ class EcsStack(Stack):
                 tag=os.environ.get("IMAGE_TAG", "latest")
             ),
             logging=ecs.LogDrivers.aws_logs(
-                stream_prefix="eval-container"
+                stream_prefix="eval-container",
+                log_group=log_group
             ),
         )
 
@@ -87,7 +109,11 @@ class EcsStack(Stack):
         # 输出重要信息
         CfnOutput(self, "ECSClusterName", value=cluster.cluster_name)
         CfnOutput(self, "TaskDefinitionArn", value=task_definition.task_definition_arn)
+        CfnOutput(self, "TaskRoleArn", value=task_definition.task_role.role_arn)
+        CfnOutput(self, "ExecutionRoleArn", value=task_definition.execution_role.role_arn)
 
         # 保存供其他 Stack 使用的属性
         self.ecs_cluster = cluster
         self.task_definition = task_definition
+        self.task_role = task_definition.task_role
+        self.execution_role = task_definition.execution_role

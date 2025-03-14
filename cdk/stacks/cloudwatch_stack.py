@@ -7,22 +7,15 @@ from aws_cdk import (
 from constructs import Construct
 
 class CloudWatchStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, 
-                 ecs_cluster_name: str,
-                 **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, ecs_cluster_name: str = None, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # 定义日志组名称
-        log_group_name = f"/aws/ecs/{ecs_cluster_name}"
-        
-        # 直接引用现有的日志组，不尝试创建
-        log_group = logs.LogGroup.from_log_group_name(
-            self, "EcsLogGroup", 
+        # 引用已存在的日志组，而不是尝试创建新的
+        log_group_name = "/aws/ecs/eval-cluster"
+        self.ecs_log_group = logs.LogGroup.from_log_group_name(
+            self, "EcsLogGroup",
             log_group_name
         )
         
         # 输出日志组名称
-        CfnOutput(
-            self, "LogGroupName",
-            value=log_group.log_group_name
-        ) 
+        CfnOutput(self, "EcsLogGroupName", value=self.ecs_log_group.log_group_name)

@@ -11,7 +11,7 @@ from aws_cdk import (
 from constructs import Construct
 
 class CodeBuildStack(Stack):
-    def __init__(self, scope: Construct, id: str, repository,  **kwargs) -> None:
+    def __init__(self, scope: Construct, id: str, repository, task_role=None, execution_role=None, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         # 获取 GitHub token
@@ -50,6 +50,7 @@ class CodeBuildStack(Stack):
                 'ecs:DescribeTaskDefinition',
                 'ecs:ListTaskDefinitions',
                 'ecs:DescribeClusters',
+                'ecs:RegisterTaskDefinition',
                 'ec2:DescribeSubnets',
                 'ec2:DescribeVpcs',
                 'ec2:DescribeSecurityGroups',
@@ -63,6 +64,33 @@ class CodeBuildStack(Stack):
         repository.grant_pull_push(self.codebuild_role)
 
         # 创建CodeBuild项目
+        environment_vars = {
+            "AWS_DEFAULT_REGION": codebuild.BuildEnvironmentVariable(
+                value=Stack.of(self).region
+            ),
+            "AWS_ACCOUNT_ID": codebuild.BuildEnvironmentVariable(
+                value=Stack.of(self).account
+            ),
+            "REPOSITORY_URI": codebuild.BuildEnvironmentVariable(
+                value=repository.repository_uri
+            ),
+            'GITHUB_TOKEN': codebuild.BuildEnvironmentVariable(
+                value=github_token.secret_arn, 
+                type=codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER
+            )
+        }
+        
+        # 如果提供了任务角色和执行角色，添加为环境变量
+        if task_role:
+            environment_vars["TASK_ROLE_ARN"] = codebuild.BuildEnvironmentVariable(
+                value=task_role.role_arn
+            )
+        
+        if execution_role:
+            environment_vars["TASK_EXECUTION_ROLE_ARN"] = codebuild.BuildEnvironmentVariable(
+                value=execution_role.role_arn
+            )
+            
         self.codebuild_project = codebuild.Project(
             self, 'EvalSandboxCodeBuild',
             project_name='eval-sandbox-codebuild',
@@ -80,21 +108,7 @@ class CodeBuildStack(Stack):
             environment=codebuild.BuildEnvironment(
                 build_image=codebuild.LinuxBuildImage.AMAZON_LINUX_2023_4,
                 privileged=True,
-                environment_variables={
-                    "AWS_DEFAULT_REGION": codebuild.BuildEnvironmentVariable(
-                        value=Stack.of(self).region
-                    ),
-                    "AWS_ACCOUNT_ID": codebuild.BuildEnvironmentVariable(
-                        value=Stack.of(self).account
-                    ),
-                    "REPOSITORY_URI": codebuild.BuildEnvironmentVariable(
-                        value=repository.repository_uri
-                    ),
-                    'GITHUB_TOKEN': codebuild.BuildEnvironmentVariable(
-                        value=github_token.secret_arn, 
-                        type=codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER
-                    )
-                }
+                environment_variables=environment_vars
             ),
             build_spec=codebuild.BuildSpec.from_source_filename('eval/docker/buildspec.yml'),
             role=self.codebuild_role

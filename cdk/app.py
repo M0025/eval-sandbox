@@ -6,6 +6,7 @@ from stacks.codebuild_stack import CodeBuildStack
 from stacks.ecs_stack import EcsStack
 from stacks.s3_stack import S3Stack
 from stacks.vpc_stack import VpcStack
+from stacks.iam_stack import IamStack
 # from stacks.lambda_stack import LambdaStack
 
 from stacks.cloudwatch_stack import CloudWatchStack
@@ -24,15 +25,22 @@ cdk.Tags.of(ecr_stack).add("Application", "EvalSandbox")
 s3_stack = S3Stack(app, 'EvalSandboxS3')
 cdk.Tags.of(s3_stack).add("Application", "EvalSandbox")
 
-# 创建 CodeBuild stack
-codebuild_stack = CodeBuildStack(app, 'EvalSandboxCodeBuild', ecr_stack.ecr_repo)
-cdk.Tags.of(codebuild_stack).add("Application", "EvalSandbox")
+# 创建 CloudWatch stack - 提前创建日志组
+cloudwatch_stack = CloudWatchStack(app, "EvalSandboxCloudWatch")
+cdk.Tags.of(cloudwatch_stack).add("Application", "EvalSandbox")
+
+# 创建 IAM stack - 创建执行和任务角色
+iam_stack = IamStack(app, 'EvalSandboxIAM')
+cdk.Tags.of(iam_stack).add("Application", "EvalSandbox")
 
 # 创建 ECS stack
 ecs_stack = EcsStack(app, 'EvalSandboxECS', 
     ecr_repository=ecr_stack.ecr_repo,
     result_bucket=s3_stack.result_bucket,
-    vpc=vpc_stack.vpc
+    vpc=vpc_stack.vpc,
+    task_role=iam_stack.task_role,
+    execution_role=iam_stack.task_execution_role,
+    log_group_name="/aws/ecs/eval-cluster"  # 使用已创建的日志组
 )
 cdk.Tags.of(ecs_stack).add("Application", "EvalSandbox")
 
@@ -44,20 +52,23 @@ cdk.Tags.of(ecs_stack).add("Application", "EvalSandbox")
 # )
 # cdk.Tags.of(lambda_stack).add("Application", "EvalSandbox")
 
-# 创建 CloudWatch stack
-cloudwatch_stack = CloudWatchStack(
-    app, "EvalSandboxCloudWatch",
-    ecs_cluster_name=ecs_stack.ecs_cluster.cluster_name
+# 创建 CodeBuild stack
+codebuild_stack = CodeBuildStack(
+    app, 'EvalSandboxCodeBuild', 
+    repository=ecr_stack.ecr_repo,
+    task_role=iam_stack.task_role,
+    execution_role=iam_stack.task_execution_role
 )
-cdk.Tags.of(cloudwatch_stack).add("Application", "EvalSandbox")
+cdk.Tags.of(codebuild_stack).add("Application", "EvalSandbox")
 
 # 添加依赖关系
-ecs_stack.add_dependency(vpc_stack)  # ECS 依赖于 VPC
+cloudwatch_stack.add_dependency(vpc_stack)
+iam_stack.add_dependency(cloudwatch_stack)  # IAM依赖于CloudWatch（日志组先创建）
+ecs_stack.add_dependency(vpc_stack)
 ecs_stack.add_dependency(ecr_stack)
 ecs_stack.add_dependency(s3_stack)
-ecs_stack.add_dependency(codebuild_stack)
-# lambda_stack.add_dependency(ecs_stack)
-# ssm_stack.add_dependency(ecs_stack)
-cloudwatch_stack.add_dependency(ecs_stack)
+ecs_stack.add_dependency(iam_stack)  # ECS依赖于IAM
+ecs_stack.add_dependency(cloudwatch_stack)  # ECS依赖于CloudWatch
+codebuild_stack.add_dependency(ecs_stack)  # CodeBuild依赖于ECS
 
 app.synth()

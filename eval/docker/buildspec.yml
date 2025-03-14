@@ -39,6 +39,9 @@ phases:
       - echo Writing image definitions file...
       - printf '[{"name":"eval-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - echo Running ECS task...
+      - echo Checking environment variables
+      - echo Task Role ARN = $TASK_ROLE_ARN
+      - echo Task Execution Role ARN = $TASK_EXECUTION_ROLE_ARN
       - envsubst < ./eval/definition-dev.json > /tmp/definition-dev.json
       - echo Showing contents of definition-dev.json after envsubst
       - cat /tmp/definition-dev.json

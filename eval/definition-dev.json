@@ -16,8 +16,8 @@
   ],
   "networkMode": "awsvpc",
   "family": "eval-python-task",
-  "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole",
-  "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole",
+  "executionRoleArn": "${TASK_EXECUTION_ROLE_ARN}",
+  "taskRoleArn": "${TASK_ROLE_ARN}",
   "cpu": "256",
   "memory": "512",
   "requiresCompatibilities": [
