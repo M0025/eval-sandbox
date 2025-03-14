@@ -12,11 +12,11 @@ phases:
       - IMAGE_TAG=${COMMIT_HASH:=latest}
       - echo "Dynamically finding VPC, subnet and security group"
       - VPC_ID=$(aws ec2 describe-vpcs --filter "Name=tag:Name,Values=*EvalVpc*" --query "Vpcs[0].VpcId" --output text)
-      - echo "Found VPC: $VPC_ID"
+      - echo $VPC_ID
       - SUBNET_ID=$(aws ec2 describe-subnets --filter "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=*Public*" --query "Subnets[0].SubnetId" --output text)
-      - echo "Using subnet: $SUBNET_ID"
+      - echo $SUBNET_ID
       - SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filter "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=*EcsSecurityGroup*" --query "SecurityGroups[0].GroupId" --output text)
-      - echo "Using security group: $SECURITY_GROUP_ID"
+      - echo $SECURITY_GROUP_ID
       - |
         if [ -z "$SECURITY_GROUP_ID" ]; then
           SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filter "Name=vpc-id,Values=$VPC_ID" "Name=group-name,Values=default" --query "SecurityGroups[0].GroupId" --output text)
