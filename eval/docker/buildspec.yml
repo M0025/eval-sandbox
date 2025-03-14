@@ -42,7 +42,13 @@ phases:
       - envsubst < ./eval/definition-dev.json > /tmp/definition-dev.json
       - echo Showing contents of definition-dev.json after envsubst
       - cat /tmp/definition-dev.json
-      - export TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json file:///tmp/definition-dev.json | jq -r '.taskDefinition.taskDefinitionArn')
+      - echo Verifying IAM roles...
+      - aws iam get-role --role-name ecsTaskExecutionRole || echo ecsTaskExecutionRole not found
+      - echo Registering task definition...
+      - TASK_DEF_OUTPUT=$(aws ecs register-task-definition --cli-input-json file:///tmp/definition-dev.json)
+      - echo Complete task definition registration output:
+      - echo "$TASK_DEF_OUTPUT"
+      - export TASK_DEFINITION_ARN=$(echo "$TASK_DEF_OUTPUT" | jq -r '.taskDefinition.taskDefinitionArn')
       - echo Task definition ARN = $TASK_DEFINITION_ARN
       - |
         if [ -n "$HYDRA_PARAMS" ]; then

@@ -53,7 +53,8 @@ class CodeBuildStack(Stack):
                 'ec2:DescribeSubnets',
                 'ec2:DescribeVpcs',
                 'ec2:DescribeSecurityGroups',
-                'iam:PassRole'
+                'iam:PassRole',
+                'iam:GetRole'
             ],
             resources=['*']
         ))
