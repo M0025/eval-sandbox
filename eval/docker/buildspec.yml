@@ -15,13 +15,29 @@ phases:
       - echo Found VPC $VPC_ID
       - SUBNET_ID=$(aws ec2 describe-subnets --filter "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=*Public*" --query "Subnets[0].SubnetId" --output text)
       - echo Using subnet $SUBNET_ID
+      - echo Listing all security groups in VPC $VPC_ID
+      - aws ec2 describe-security-groups --filter "Name=vpc-id,Values=$VPC_ID" --query "SecurityGroups[*].[GroupId,GroupName,Tags]" --output text
+      - echo Trying to find ECS security group by tag name...
       - SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filter "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=*EcsSecurityGroup*" --query "SecurityGroups[0].GroupId" --output text)
-      - echo Using security group $SECURITY_GROUP_ID
+      - echo Security group from tag query: $SECURITY_GROUP_ID
       - |
-        if [ -z "$SECURITY_GROUP_ID" ]; then
-          SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filter "Name=vpc-id,Values=$VPC_ID" "Name=group-name,Values=default" --query "SecurityGroups[0].GroupId" --output text)
-          echo ECS security group not found, using default security group $SECURITY_GROUP_ID
+        if [ -z "$SECURITY_GROUP_ID" ] || [ "$SECURITY_GROUP_ID" = "None" ]; then
+          echo ECS security group not found by tag, trying to find by name...
+          SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filter "Name=vpc-id,Values=$VPC_ID" "Name=group-name,Values=*EvalSandboxECS*" --query "SecurityGroups[0].GroupId" --output text)
+          echo Security group from name query: $SECURITY_GROUP_ID
         fi
+      - |
+        if [ -z "$SECURITY_GROUP_ID" ] || [ "$SECURITY_GROUP_ID" = "None" ]; then
+          echo ECS security group not found by name either, using default security group
+          SECURITY_GROUP_ID=$(aws ec2 describe-security-groups --filter "Name=vpc-id,Values=$VPC_ID" "Name=group-name,Values=default" --query "SecurityGroups[0].GroupId" --output text)
+          echo Default security group: $SECURITY_GROUP_ID
+        fi
+      - |
+        if [ -z "$SECURITY_GROUP_ID" ] || [ "$SECURITY_GROUP_ID" = "None" ]; then
+          echo No security groups found. This will cause an error.
+          exit 1
+        fi
+      - echo Final security group ID: $SECURITY_GROUP_ID
   build:
     commands:
       - echo Build started on `date`
