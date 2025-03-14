@@ -51,6 +51,7 @@ class CodeBuildStack(Stack):
                 'ecs:ListTaskDefinitions',
                 'ecs:DescribeClusters',
                 'ecs:RegisterTaskDefinition',
+                'ecs:TagResource',
                 'ec2:DescribeSubnets',
                 'ec2:DescribeVpcs',
                 'ec2:DescribeSecurityGroups',
