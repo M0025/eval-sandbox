@@ -51,6 +51,8 @@ class CodeBuildStack(Stack):
                 'ecs:ListTaskDefinitions',
                 'ecs:DescribeClusters',
                 'ec2:DescribeSubnets',
+                'ec2:DescribeVpcs',
+                'ec2:DescribeSecurityGroups',
                 'iam:PassRole'
             ],
             resources=['*']
