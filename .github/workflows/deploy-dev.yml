@@ -1,0 +1,26 @@
+name: Deploy Dev
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'cdk/**'
+      - 'lambda_functions/**'
+      - 'eval/docker/**'
+      - '.github/workflows/**'
+      - 'eval/definition-dev.json'
+      - 'eval/run-dev.json'
+
+permissions:
+  actions: read
+  contents: read
+  id-token: write
+  packages: read
+
+jobs:
+  call-deploy-aws-resources:
+    uses: ./.github/workflows/deploy-aws-resources.yml
+    secrets: inherit
+    with:
+      environment: "dev"
