@@ -2,10 +2,14 @@ import os
 import boto3
 import json
 import base64
+import gzip
+import io
 
 def handler(event, context):
     # 解码CloudWatch日志数据
-    log_data = json.loads(base64.b64decode(event['awslogs']['data']).decode('utf-8'))
+    compressed_data = base64.b64decode(event['awslogs']['data'])
+    decompressed_data = gzip.GzipFile(fileobj=io.BytesIO(compressed_data)).read()
+    log_data = json.loads(decompressed_data.decode('utf-8'))
     
     # 检查日志事件
     for log_event in log_data['logEvents']:
