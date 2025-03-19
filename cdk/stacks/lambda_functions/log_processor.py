@@ -8,7 +8,7 @@ import io
 def handler(event, context):
     # 解码CloudWatch日志数据
     compressed_data = base64.b64decode(event['awslogs']['data'])
-    decompressed_data = gzip.GzipFile(fileobj=io.BytesIO(compressed_data)).read()
+    decompressed_data = gzip.decompress(compressed_data)
     log_data = json.loads(decompressed_data.decode('utf-8'))
     
     # 检查日志事件

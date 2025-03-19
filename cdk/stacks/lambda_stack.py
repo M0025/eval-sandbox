@@ -21,7 +21,7 @@ class LambdaStack(Stack):
             code=_lambda.Code.from_asset(os.path.join(os.path.dirname(__file__), "lambda_functions")),
             timeout=Duration.seconds(30),
             environment={
-                'CODEBUILD_PROJECT_NAME': 'EvalSandboxCodeBuild'  # CodeBuild项目名称
+                'CODEBUILD_PROJECT_NAME': 'eval-sandbox-codebuild'  # 使用正确的CodeBuild项目名称
             }
         )
 
