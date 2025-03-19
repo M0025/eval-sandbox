@@ -1,4 +1,5 @@
-# 这个文件是CDK的入口文件
+#!/usr/bin/env python3
+import os
 
 import aws_cdk as cdk
 from stacks.ecr_stack import ECRStack
@@ -7,7 +8,7 @@ from stacks.ecs_stack import EcsStack
 from stacks.s3_stack import S3Stack
 from stacks.vpc_stack import VpcStack
 from stacks.iam_stack import IamStack
-# from stacks.lambda_stack import LambdaStack
+from stacks.lambda_stack import LambdaStack
 
 from stacks.cloudwatch_stack import CloudWatchStack
 
@@ -39,18 +40,13 @@ ecs_stack = EcsStack(app, 'EvalSandboxECS',
     result_bucket=s3_stack.result_bucket,
     vpc=vpc_stack.vpc,
     task_role=iam_stack.task_role,
-    execution_role=iam_stack.task_execution_role,
-    log_group_name="/aws/ecs/eval-cluster"  # 使用已创建的日志组
+    execution_role=iam_stack.task_execution_role
 )
 cdk.Tags.of(ecs_stack).add("Application", "EvalSandbox")
 
-# # 创建 Lambda stack
-# lambda_stack = LambdaStack(
-#     app, "EvalSandboxLambda",
-#     cluster=ecs_stack.ecs_cluster,
-#     task_definition=ecs_stack.task_definition
-# )
-# cdk.Tags.of(lambda_stack).add("Application", "EvalSandbox")
+# 创建 Lambda stack
+lambda_stack = LambdaStack(app, "EvalSandboxLambda")
+cdk.Tags.of(lambda_stack).add("Application", "EvalSandbox")
 
 # 创建 CodeBuild stack
 codebuild_stack = CodeBuildStack(
@@ -70,5 +66,6 @@ ecs_stack.add_dependency(s3_stack)
 ecs_stack.add_dependency(iam_stack)  # ECS依赖于IAM
 ecs_stack.add_dependency(cloudwatch_stack)  # ECS依赖于CloudWatch
 codebuild_stack.add_dependency(ecs_stack)  # CodeBuild依赖于ECS
+lambda_stack.add_dependency(ecs_stack)  # Lambda依赖于ECS
 
 app.synth()
