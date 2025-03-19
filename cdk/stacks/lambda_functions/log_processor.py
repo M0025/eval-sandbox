@@ -1,12 +1,16 @@
 import os
 import boto3
 import json
+import base64
 
 def handler(event, context):
-    # 解码并检查日志事件
-    for log_event in event['awslogs']['data']:
-        # 检查日志中是否包含"任务完成!"
-        if "任务完成!" in log_event['message']:
+    # 解码CloudWatch日志数据
+    log_data = json.loads(base64.b64decode(event['awslogs']['data']).decode('utf-8'))
+    
+    # 检查日志事件
+    for log_event in log_data['logEvents']:
+        # 检查日志中是否包含"TASK_COMPLETED"
+        if "TASK_COMPLETED" in log_event['message']:
             # 获取CodeBuild客户端
             codebuild = boto3.client('codebuild')
             
