@@ -51,6 +51,9 @@ jobs:
           echo "Changed files in this commit:"
           git diff --name-only ${{ github.event.before }} ${{ github.sha }}
 
+      - name: Build TypeScript
+        run: npm run build
+
       - name: CDK Diff
         id: cdk-diff-ap-northeast-1
         shell: bash
@@ -60,10 +63,10 @@ jobs:
           exit_code=$?
           if [[ $exit_code -eq 0 ]]; then
             echo "result=0" >> "$GITHUB_OUTPUT"
-            echo "No changes detected in infrastructure"
+            echo "No changes"
           else
             echo "result=1" >> "$GITHUB_OUTPUT"
-            echo "Infrastructure changes detected"
+            echo "Changes detected"  
           fi
 
       - name: CDK Deploy
