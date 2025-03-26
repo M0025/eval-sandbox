@@ -1,0 +1,11 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowCDKBootstrapParameter",
+            "Effect": "Allow",
+            "Action": "ssm:GetParameter",
+            "Resource": "arn:aws:ssm:ap-northeast-1:783764605802:parameter/cdk-bootstrap/hnb659fds/version"
+        }
+    ]
+} 
