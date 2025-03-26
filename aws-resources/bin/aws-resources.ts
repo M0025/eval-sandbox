@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
 import { AwsResourcesStack } from '../lib/aws-resources-stack';
+import { GithubOidcRoleStack } from '../lib/github-oidc-role-stack';
 
 const app = new cdk.App();
 new AwsResourcesStack(app, 'AwsResourcesStack', {
@@ -18,3 +19,4 @@ new AwsResourcesStack(app, 'AwsResourcesStack', {
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
+new GithubOidcRoleStack(app, 'GithubOidcRoleStack');
