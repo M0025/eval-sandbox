@@ -23,10 +23,12 @@ jobs:
     environment: ${{ inputs.environment }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2.4.0
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js 20.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v2.5.1
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -40,7 +42,7 @@ jobs:
         run: npm ci
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v1.6.1
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           role-session-name: aws-amptalk-ml-${{ inputs.environment }}-session
