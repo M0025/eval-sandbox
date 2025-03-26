@@ -82,7 +82,8 @@ jobs:
           npx cdk deploy \
           --app 'npx tsx bin/aws-resources.ts' \
           --all \
-          --require-approval never
+          --require-approval never \
+          --no-role-assume
           echo "CDK deployment completed"
 
       - name: Check Deployment Status

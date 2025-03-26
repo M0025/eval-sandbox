@@ -39,6 +39,17 @@ export class GithubOidcRoleStack extends cdk.Stack {
       maxSessionDuration: cdk.Duration.hours(1),
     });
 
+    // ✅ 添加 CDK Assets Bucket 的访问权限
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["s3:*"],
+        resources: [
+          `arn:aws:s3:::cdk-hnb659fds-assets-${cdk.Stack.of(this).account}-${this.region}`,
+          `arn:aws:s3:::cdk-hnb659fds-assets-${cdk.Stack.of(this).account}-${this.region}/*`,
+        ],
+      })
+    );
+
     new cdk.CfnOutput(this, "GithubOidcRoleArn", {
       value: role.roleArn,
       description: "IAM Role ARN for GitHub OIDC (test)",
