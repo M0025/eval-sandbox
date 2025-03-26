@@ -73,7 +73,8 @@ jobs:
             echo "result=1" >> "$GITHUB_OUTPUT"
             echo "Changes detected"  
           fi
-
+      - name: 🔍 Show current IAM identity
+        run: aws sts get-caller-identity
       - name: CDK Deploy
         if: ${{ steps.cdk-diff-ap-northeast-1.outputs.result == 1 }}
         shell: bash
