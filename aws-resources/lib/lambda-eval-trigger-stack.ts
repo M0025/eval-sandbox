@@ -1,8 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as logs from 'aws-cdk-lib/aws-logs';
-import * as logs_destinations from 'aws-cdk-lib/aws-logs-destinations';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 
@@ -51,11 +51,16 @@ export class LambdaEvalTriggerStack extends cdk.Stack {
         // 添加 DynamoDB 权限
         stateTable.grantReadWriteData(evalTriggerLambda);
 
-        // 创建 CloudWatch Logs 订阅过滤器
-        new logs.SubscriptionFilter(this, 'EvalTriggerFilter', {
-            logGroup: logs.LogGroup.fromLogGroupName(this, 'TrainingTaskLogGroup', '/aws/ecs/training-task'),
-            destination: new logs_destinations.LambdaDestination(evalTriggerLambda),
-            filterPattern: logs.FilterPattern.literal('Successfully ran task\\(asr\\)')
+        // 创建 CloudWatch 事件规则
+        new events.Rule(this, 'EvalTriggerRule', {
+            eventPattern: {
+                source: ['aws.logs'],
+                detailType: ['CloudWatch Logs Log Group'],
+                detail: {
+                    logGroupName: ['/aws/ecs/training-task']
+                }
+            },
+            targets: [new targets.LambdaFunction(evalTriggerLambda)]
         });
 
         // 输出 DynamoDB 表名
