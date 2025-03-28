@@ -55,7 +55,7 @@ export class LambdaEvalTriggerStack extends cdk.Stack {
         new logs.SubscriptionFilter(this, 'EvalTriggerFilter', {
             logGroup: logs.LogGroup.fromLogGroupName(this, 'TrainingTaskLogGroup', '/aws/ecs/training-task'),
             destination: new logs_destinations.LambdaDestination(evalTriggerLambda),
-            filterPattern: logs.FilterPattern.literal('Successfully ran task(asr)')
+            filterPattern: logs.FilterPattern.literal('Successfully ran task\\(asr\\)')
         });
 
         // 输出 DynamoDB 表名
