@@ -4,6 +4,7 @@ import * as cdk from 'aws-cdk-lib';
 import { TrainingStack } from '../lib/training-stack';
 import { GithubOidcRoleStack } from '../lib/github-oidc-role-stack';
 import { LambdaEvalTriggerStack } from '../lib/lambda-eval-trigger-stack';
+import { EcsEvalStack } from '../lib/ecs-eval-stack';
 
 const app = new cdk.App();
 
@@ -20,6 +21,14 @@ new TrainingStack(app, 'TrainingStack', {
 new GithubOidcRoleStack(app, 'GithubOidcRoleStack');
 // 创建评估触发 Lambda Stack
 const lambdaEvalTriggerStack = new LambdaEvalTriggerStack(app, 'LambdaEvalTriggerStack', {
+  env: {
+    account: process.env.CDK_DEFAULT_ACCOUNT,
+    region: process.env.CDK_DEFAULT_REGION,
+  },
+});
+
+// 创建 ECS 评估 Stack
+new EcsEvalStack(app, 'EcsEvalStack', {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
