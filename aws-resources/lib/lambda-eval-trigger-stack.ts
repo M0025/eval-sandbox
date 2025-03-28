@@ -5,6 +5,7 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
+import * as path from 'path';
 
 export class LambdaEvalTriggerStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -22,7 +23,7 @@ export class LambdaEvalTriggerStack extends cdk.Stack {
         const evalTriggerLambda = new lambda.Function(this, 'EvalTriggerFunction', {
             runtime: lambda.Runtime.PYTHON_3_9,
             handler: 'eval_trigger.handler',
-            code: lambda.Code.fromAsset('../lambda'),
+            code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
             timeout: cdk.Duration.seconds(30),
             environment: {
                 'DYNAMODB_TABLE': stateTable.tableName
