@@ -57,7 +57,8 @@ export class LambdaEvalTriggerStack extends cdk.Stack {
                 source: ['aws.logs'],
                 detailType: ['CloudWatch Logs Log Group'],
                 detail: {
-                    logGroupName: ['/aws/ecs/training-task']
+                    logGroupName: ['/aws/ecs/training-task'],
+                    logStreamName: [{ prefix: '' }]
                 }
             },
             targets: [new targets.LambdaFunction(evalTriggerLambda)]
