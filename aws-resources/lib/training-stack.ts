@@ -64,7 +64,7 @@ export class TrainingStack extends cdk.Stack {
     // 添加容器到任务定义
     const container = taskDefinition.addContainer('TrainingContainer', {
       image: ecs.ContainerImage.fromRegistry('python:3.9-slim'),  // 使用官方 Python 镜像
-      command: ['python', '-c', 'print("Hello from ECS Task!")'],  // 直接执行 Python 命令
+      command: ['python', '-c', 'print("Successfully ran task(asr)")'],  // 直接执行 Python 命令
       logging: ecs.LogDrivers.awsLogs({
         streamPrefix: 'training',
         logGroup: logGroup,

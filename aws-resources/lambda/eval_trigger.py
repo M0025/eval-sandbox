@@ -18,7 +18,7 @@ def handler(event, context):
     logger.info(f"Received event: {json.dumps(event)}")
     
     # 目标日志组
-    log_group_name = '/aws/ecs/eval-cluster'
+    log_group_name = '/aws/ecs/training-task'
     
     try:
         # 获取最新的日志事件
@@ -34,7 +34,7 @@ def handler(event, context):
             log_message = event['message']
             
             # 检查是否包含成功运行评估任务的关键字
-            if "Successfully ran task(evaluation)" in log_message:
+            if "Successfully ran task(asr)" in log_message:
                 logger.info("Found successful evaluation task completion!")
                 
                 # 触发新的 Lambda 函数
