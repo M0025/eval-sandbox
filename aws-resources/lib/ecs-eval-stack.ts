@@ -71,7 +71,7 @@ export class EcsEvalStack extends cdk.Stack {
 
         // 添加容器到任务定义
         const container = taskDefinition.addContainer('EvalContainer', {
-            image: ecs.ContainerImage.fromEcrRepository(repository, 'latest'),
+            image: ecs.ContainerImage.fromEcrRepository(repository, '89bbad6'),
             logging: ecs.LogDrivers.awsLogs({
                 streamPrefix: 'eval',
                 logGroup
@@ -92,7 +92,7 @@ export class EcsEvalStack extends cdk.Stack {
         const service = new ecs.FargateService(this, 'EvalService', {
             cluster,
             taskDefinition,
-            desiredCount: 1,
+            desiredCount: 0,
             securityGroups: [securityGroup],
             assignPublicIp: true,
             vpcSubnets: {

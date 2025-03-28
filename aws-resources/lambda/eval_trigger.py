@@ -42,15 +42,15 @@ def update_last_check_time():
         logger.error(f"Error updating last check time: {str(e)}")
         return None
 
-def update_service_desired_count():
+def update_service_desired_count(desired_count=1):
     """更新 ECS 服务的期望任务数"""
     try:
         response = ecs.update_service(
             cluster='eval-cluster',
             service='EvalService',
-            desiredCount=1
+            desiredCount=desired_count
         )
-        logger.info(f"Successfully updated service desired count: {json.dumps(response)}")
+        logger.info(f"Successfully updated service desired count to {desired_count}: {json.dumps(response)}")
         return response
     except Exception as e:
         logger.error(f"Error updating service desired count: {str(e)}")
@@ -90,8 +90,8 @@ def handler(event, context):
             if "Successfully ran task(asr)" in log_message:
                 logger.info("Found successful evaluation task completion!")
                 
-                # 更新 ECS 服务期望任务数
-                update_service_desired_count()
+                # 更新 ECS 服务期望任务数为1，启动新任务
+                update_service_desired_count(1)
                 
                 # 更新最后检查时间
                 update_last_check_time()
@@ -99,6 +99,21 @@ def handler(event, context):
                 return {
                     'statusCode': 200,
                     'body': json.dumps('Successfully triggered ECS service')
+                }
+            
+            # 检查是否包含任务完成的关键字
+            if "TASK_COMPLETED" in log_message:
+                logger.info("Found task completion!")
+                
+                # 更新 ECS 服务期望任务数为0，停止服务
+                update_service_desired_count(0)
+                
+                # 更新最后检查时间
+                update_last_check_time()
+                
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps('Successfully stopped ECS service')
                 }
         
         # 如果没有找到匹配的日志，也更新最后检查时间
