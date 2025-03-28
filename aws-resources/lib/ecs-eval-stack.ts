@@ -37,11 +37,8 @@ export class EcsEvalStack extends cdk.Stack {
             assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
         });
 
-        // 创建日志组
-        const logGroup = new logs.LogGroup(this, 'EvalLogGroup', {
-            logGroupName: '/ecs/asr-evaluation-dev',
-            retention: logs.RetentionDays.ONE_WEEK
-        });
+        // 引用已存在的日志组
+        const logGroup = logs.LogGroup.fromLogGroupName(this, 'EvalLogGroup', '/ecs/asr-evaluation-dev');
 
         // 添加 CloudWatch Logs 权限
         taskRole.addToPolicy(new iam.PolicyStatement({
