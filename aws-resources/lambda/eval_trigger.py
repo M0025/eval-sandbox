@@ -9,7 +9,7 @@ logger.setLevel(logging.INFO)
 
 # 初始化 AWS 客户端
 cloudwatch = boto3.client('cloudwatch-logs')
-lambda_client = boto3.client('lambda')
+ecs = boto3.client('ecs')
 dynamodb = boto3.client('dynamodb')
 
 def get_last_check_time():
@@ -42,10 +42,24 @@ def update_last_check_time():
         logger.error(f"Error updating last check time: {str(e)}")
         return None
 
+def update_service_desired_count():
+    """更新 ECS 服务的期望任务数"""
+    try:
+        response = ecs.update_service(
+            cluster='eval-cluster',
+            service='EvalService',
+            desiredCount=1
+        )
+        logger.info(f"Successfully updated service desired count: {json.dumps(response)}")
+        return response
+    except Exception as e:
+        logger.error(f"Error updating service desired count: {str(e)}")
+        raise
+
 def handler(event, context):
     """
     监控 CloudWatch 日志组中的特定日志
-    当检测到成功运行评估任务时触发新的 Lambda 函数
+    当检测到成功运行评估任务时触发 ECS 服务
     """
     logger.info(f"Received event: {json.dumps(event)}")
     
@@ -76,23 +90,15 @@ def handler(event, context):
             if "Successfully ran task(asr)" in log_message:
                 logger.info("Found successful evaluation task completion!")
                 
-                # 触发新的 Lambda 函数
-                lambda_client.invoke(
-                    FunctionName=context.function_name,
-                    InvocationType='Event',
-                    Payload=json.dumps({
-                        'message': 'Evaluation task completed successfully',
-                        'original_event': log_event,
-                        'timestamp': log_event['timestamp']
-                    })
-                )
+                # 更新 ECS 服务期望任务数
+                update_service_desired_count()
                 
                 # 更新最后检查时间
                 update_last_check_time()
                 
                 return {
                     'statusCode': 200,
-                    'body': json.dumps('Successfully triggered new process')
+                    'body': json.dumps('Successfully triggered ECS service')
                 }
         
         # 如果没有找到匹配的日志，也更新最后检查时间

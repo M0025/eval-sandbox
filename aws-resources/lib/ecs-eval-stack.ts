@@ -10,16 +10,16 @@ export class EcsEvalStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        // 创建 VPC
-        const vpc = new ec2.Vpc(this, 'EvalVPC', {
-            maxAzs: 2,
-            natGateways: 1
+        // 使用 EvalSandboxVPC
+        const vpc = ec2.Vpc.fromLookup(this, 'EvalSandboxVPC', {
+            vpcId: 'vpc-0bbcf1a5778475522'
         });
 
-        // 创建 ECS 集群
-        const cluster = new ecs.Cluster(this, 'EvalCluster', {
+        // 使用现有的 ECS 集群
+        const cluster = ecs.Cluster.fromClusterAttributes(this, 'ExistingCluster', {
+            clusterName: 'eval-cluster',
             vpc,
-            containerInsights: true
+            securityGroups: []
         });
 
         // 创建任务执行角色
@@ -37,6 +37,12 @@ export class EcsEvalStack extends cdk.Stack {
             assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
         });
 
+        // 创建日志组
+        const logGroup = new logs.LogGroup(this, 'EvalLogGroup', {
+            logGroupName: '/ecs/asr-evaluation-dev',
+            retention: logs.RetentionDays.ONE_WEEK
+        });
+
         // 添加 CloudWatch Logs 权限
         taskRole.addToPolicy(new iam.PolicyStatement({
             effect: iam.Effect.ALLOW,
@@ -44,14 +50,8 @@ export class EcsEvalStack extends cdk.Stack {
                 'logs:CreateLogStream',
                 'logs:PutLogEvents'
             ],
-            resources: ['*']
+            resources: [logGroup.logGroupArn]
         }));
-
-        // 创建日志组
-        const logGroup = new logs.LogGroup(this, 'EvalLogGroup', {
-            logGroupName: '/aws/ecs/eval-task',
-            retention: logs.RetentionDays.ONE_WEEK
-        });
 
         // 创建任务定义
         const taskDefinition = new ecs.FargateTaskDefinition(this, 'EvalTaskDefinition', {
@@ -62,11 +62,11 @@ export class EcsEvalStack extends cdk.Stack {
             family: 'eval-task'
         });
 
-        // 从 ECR 获取镜像
+        // 从指定的 ECR 获取镜像
         const repository = ecr.Repository.fromRepositoryName(
             this,
             'EvalRepository',
-            'your-repository-name' // 替换为实际的 ECR 仓库名
+            'eval-sandbox-ecr'
         );
 
         // 添加容器到任务定义
@@ -77,7 +77,6 @@ export class EcsEvalStack extends cdk.Stack {
                 logGroup
             }),
             environment: {
-                // 添加必要的环境变量
                 'AWS_REGION': this.region
             }
         });
@@ -95,7 +94,10 @@ export class EcsEvalStack extends cdk.Stack {
             taskDefinition,
             desiredCount: 1,
             securityGroups: [securityGroup],
-            assignPublicIp: true
+            assignPublicIp: true,
+            vpcSubnets: {
+                subnetType: ec2.SubnetType.PUBLIC
+            }
         });
 
         // 输出服务 URL
