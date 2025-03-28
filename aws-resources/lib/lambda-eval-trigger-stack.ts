@@ -22,7 +22,7 @@ export class LambdaEvalTriggerStack extends cdk.Stack {
         const evalTriggerLambda = new lambda.Function(this, 'EvalTriggerFunction', {
             runtime: lambda.Runtime.PYTHON_3_9,
             handler: 'eval_trigger.handler',
-            code: lambda.Code.fromAsset('lambda'),
+            code: lambda.Code.fromAsset('../lambda'),
             timeout: cdk.Duration.seconds(30),
             environment: {
                 'DYNAMODB_TABLE': stateTable.tableName
